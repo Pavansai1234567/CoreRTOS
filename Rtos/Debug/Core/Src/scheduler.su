@@ -1,1 +1,6 @@
-../Core/Src/scheduler.c:16:6:Tcb_Allocation	16	static
+../Core/Src/scheduler.c:17:5:Tcb_Allocation	16	static
+../Core/Src/scheduler.c:47:5:Task_Create	32	static
+../Core/Src/scheduler.c:91:5:get_Task_priority	16	static
+../Core/Src/scheduler.c:99:6:set_Task_priority	16	static
+../Core/Src/scheduler.c:111:6:suspend_task	24	static
+../Core/Src/scheduler.c:130:6:ready_task	16	static
