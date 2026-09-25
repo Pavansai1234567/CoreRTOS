@@ -18,6 +18,8 @@ extern uint32_t _estack;
 #define MAX_TASK_NAME     50u
 #define WORD_ALLOCATION   4u  //if it i s 8 bit allocation give 1 ,16 bit means 2 ,32 bit means 4
 #define MAX_TASK_PRI      10u //max value we can keep up to 255
+#define EXE_RETURN_NF_TM  0xFFFFFFFD
+#define XPSR_THUMB_STATE  0x01000000
 typedef struct st
 {
 	uint32_t psp_value;

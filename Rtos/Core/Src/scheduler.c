@@ -134,3 +134,26 @@ void ready_task(TCB_T *Task_handler)
 	else
 		return;
 }
+void task_init(void)
+{
+	uint32_t *l_psp=0;
+	for(int i=0;i<gu8_max_task_created;i++)
+	{
+		l_psp=0;
+		l_psp=(uint32_t*)((TCB[i].psp_value/32)*32);
+
+		(*l_psp--)=XPSR_THUMB_STATE;  //adding processor to thumb state in Xpsr register
+
+		(*l_psp--)=(uint32_t)(TCB[i].fun);  //assiging task handler to PC (R15)
+
+		(*l_psp--)=EXE_RETURN_NF_TM;  //LR (R14) is setup for return in threadmode with psp and no floating unit
+		/*
+		 * R12 R3 R2 R1 R0 R4 R5 R6 R7 R8 R9 R10 R11 =0
+		 */
+		for(int j=0 ;j<13;j++)
+		{
+			(*l_psp--)=0;
+		}
+		TCB[i].psp_value=(uint32_t)l_psp; //and reassiging the currect psp to task handler psp value
+	}
+}

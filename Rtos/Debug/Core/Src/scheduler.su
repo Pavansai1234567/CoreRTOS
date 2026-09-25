@@ -4,3 +4,4 @@
 ../Core/Src/scheduler.c:99:6:set_Task_priority	16	static
 ../Core/Src/scheduler.c:111:6:suspend_task	24	static
 ../Core/Src/scheduler.c:130:6:ready_task	16	static
+../Core/Src/scheduler.c:137:6:task_init	24	static

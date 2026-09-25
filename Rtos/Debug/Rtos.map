@@ -173,12 +173,14 @@ Discarded input sections
                 0x00000000       0x2c ./Core/Src/scheduler.o
  .text.ready_task
                 0x00000000       0x28 ./Core/Src/scheduler.o
- .debug_info    0x00000000      0x352 ./Core/Src/scheduler.o
- .debug_abbrev  0x00000000      0x1bf ./Core/Src/scheduler.o
+ .text.task_init
+                0x00000000       0xb0 ./Core/Src/scheduler.o
+ .debug_info    0x00000000      0x3a6 ./Core/Src/scheduler.o
+ .debug_abbrev  0x00000000      0x1d1 ./Core/Src/scheduler.o
  .debug_aranges
-                0x00000000       0x48 ./Core/Src/scheduler.o
+                0x00000000       0x50 ./Core/Src/scheduler.o
  .debug_rnglists
-                0x00000000       0x33 ./Core/Src/scheduler.o
+                0x00000000       0x3a ./Core/Src/scheduler.o
  .debug_macro   0x00000000      0x2a5 ./Core/Src/scheduler.o
  .debug_macro   0x00000000      0xad8 ./Core/Src/scheduler.o
  .debug_macro   0x00000000       0x22 ./Core/Src/scheduler.o
@@ -216,7 +218,7 @@ Discarded input sections
  .debug_macro   0x00000000       0x85 ./Core/Src/scheduler.o
  .debug_macro   0x00000000       0x89 ./Core/Src/scheduler.o
  .debug_macro   0x00000000      0x126 ./Core/Src/scheduler.o
- .debug_macro   0x00000000       0x22 ./Core/Src/scheduler.o
+ .debug_macro   0x00000000       0x2e ./Core/Src/scheduler.o
  .debug_macro   0x00000000       0x61 ./Core/Src/scheduler.o
  .debug_macro   0x00000000       0x2a ./Core/Src/scheduler.o
  .debug_macro   0x00000000       0x43 ./Core/Src/scheduler.o
@@ -233,10 +235,10 @@ Discarded input sections
  .debug_macro   0x00000000       0x10 ./Core/Src/scheduler.o
  .debug_macro   0x00000000       0x3c ./Core/Src/scheduler.o
  .debug_macro   0x00000000       0x20 ./Core/Src/scheduler.o
- .debug_line    0x00000000      0x98d ./Core/Src/scheduler.o
- .debug_str     0x00000000    0x808f0 ./Core/Src/scheduler.o
+ .debug_line    0x00000000      0xa01 ./Core/Src/scheduler.o
+ .debug_str     0x00000000    0x80938 ./Core/Src/scheduler.o
  .comment       0x00000000       0x44 ./Core/Src/scheduler.o
- .debug_frame   0x00000000       0xfc ./Core/Src/scheduler.o
+ .debug_frame   0x00000000      0x124 ./Core/Src/scheduler.o
  .ARM.attributes
                 0x00000000       0x34 ./Core/Src/scheduler.o
  .group         0x00000000        0xc ./Core/Src/stm32f4xx_hal_msp.o
