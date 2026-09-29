@@ -1,7 +1,10 @@
-../Core/Src/scheduler.c:17:5:Tcb_Allocation	3
-../Core/Src/scheduler.c:47:5:Task_Create	5
-../Core/Src/scheduler.c:91:5:get_Task_priority	1
-../Core/Src/scheduler.c:99:6:set_Task_priority	2
-../Core/Src/scheduler.c:111:6:suspend_task	2
-../Core/Src/scheduler.c:130:6:ready_task	2
-../Core/Src/scheduler.c:137:6:task_init	3
+../Core/Src/scheduler.c:18:5:Tcb_Allocation	3
+../Core/Src/scheduler.c:48:5:Task_Create	5
+../Core/Src/scheduler.c:92:5:get_Task_priority	1
+../Core/Src/scheduler.c:100:6:set_Task_priority	2
+../Core/Src/scheduler.c:112:6:suspend_task	2
+../Core/Src/scheduler.c:131:6:ready_task	2
+../Core/Src/scheduler.c:138:6:task_init	3
+../Core/Src/scheduler.c:161:6:mpu_update	1
+../Core/Src/scheduler.c:186:6:systick_init	1
+../Core/Src/scheduler.c:201:6:SysTick_Handler	1

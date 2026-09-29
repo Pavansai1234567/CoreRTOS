@@ -13,7 +13,8 @@ TCB_T TCB[MAX_TASKS];
 uint8_t gu8_curr_task_tcb=0,
 		gu8_max_task_created=0;
 
-
+uint32_t G_tik_cnt=0;
+extern uint32_t SystemCoreClock;
 int Tcb_Allocation(void)
 {
 	/* if they are creating more than the they declard task in the header file it will return 0*/
@@ -156,4 +157,49 @@ void task_init(void)
 		}
 		TCB[i].psp_value=(uint32_t)l_psp; //and reassiging the currect psp to task handler psp value
 	}
+}
+void mpu_update(TCB_T Task_tcb ,int region)
+{
+	//MPU->TYPE=0;
+	MPU->CTRL=0<<0;  //turnoff the mpu protection before updating any mpu region
+
+	__DSB();
+
+	__ISB();
+
+	MPU->RNR= ( region );
+
+	MPU->RBAR=Task_tcb.MPU_Gaurd;
+
+	MPU->RASR= (MPU_RASR_ENABLE_Msk )|
+			    (ARM_MPU_REGION_SIZE_32B << MPU_RASR_SIZE_Pos) |
+			    (0<<MPU_RASR_AP_Pos) |
+			    (MPU_RASR_XN_Msk)  ;
+
+	MPU->CTRL= MPU_CTRL_PRIVDEFENA_Msk |
+			MPU_CTRL_ENABLE_Msk;
+
+	__DSB();
+
+	__ISB();
+}
+void systick_init(void)
+{
+	uint32_t Arr_value= (SystemCoreClock / TICK_HZ) - 1U;
+
+	SysTick->LOAD = Arr_value ;                           //load value
+
+	SysTick->VAL  = 0;                           //before starting the value initialise to zero
+
+	SCB->SHP[11]  = (KERNEL_INTERRUPT_PRIORITY << 4) ;
+
+	SysTick->CTRL =SysTick_CTRL_ENABLE_Msk    |   //counter enable (start counting it is down counter)
+			  SysTick_CTRL_TICKINT_Msk   |   //enable the interrupt when the counter reaches to zero
+			  SysTick_CTRL_CLKSOURCE_Msk     //chosing the clock source as AHB
+			;
+}
+void SysTick_Handler(void)
+{
+	G_tik_cnt++;
+	//here we need to implement the switching logic here
 }

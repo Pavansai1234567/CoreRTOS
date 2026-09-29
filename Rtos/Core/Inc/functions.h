@@ -17,4 +17,6 @@ void set_Task_priority(TCB_T *Task_handler, uint8_t priority);
 void suspend_task(TCB_T *Task_handler, enum State state_t);
 void ready_task(TCB_T *Task_handler);
 void task_init(void);
+void mpu_update(TCB_T Task_tcb ,int region);
+void systick_init(void);
 #endif /* INC_FUNCTIONS_H_ */
