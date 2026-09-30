@@ -8,7 +8,8 @@
 #include "scheduler.h"
 #include "string.h"
 
-TCB_T TCB[MAX_TASKS];
+TCB_T TCB[MAX_TASKS],
+	  *Currect_running_task;
 
 uint8_t gu8_curr_task_tcb=0,
 		gu8_max_task_created=0;
@@ -45,6 +46,10 @@ int Tcb_Allocation(void)
 	}
 	return 1;
 }
+void idle_task(void)
+{
+	Task_Create(Idle_task_handler,IDLE_TASK_SIZE,"IDLE_TASK",READY,0);
+}
 int Task_Create(void(*fun)(void) ,uint32_t size,const char *task_name, uint8_t task_state, uint8_t task_priority)
 {
 	int local_value=Tcb_Allocation();
@@ -74,7 +79,7 @@ int Task_Create(void(*fun)(void) ,uint32_t size,const char *task_name, uint8_t t
 
 	TCB[local_value].fun=fun;
 
-	TCB[local_value].Task_block=0;
+	TCB[local_value].Task_wait=0;
 
 
 	uint32_t gaurd=TCB[local_value].psp_value+((TCB[local_value].Task_Size) *WORD_ALLOCATION);
@@ -201,5 +206,81 @@ void systick_init(void)
 void SysTick_Handler(void)
 {
 	G_tik_cnt++;
+	for(int i=0;i<gu8_max_task_created;i++)
+	{
+		if(TCB[i].Task_wait >=G_tik_cnt)
+		{
+			if(TCB[i].Task_State == BLOCKED)
+			{
+				TCB[i].Task_State=READY;
+			}
+		}
+	}
 	//here we need to implement the switching logic here
+}
+void delay(uint32_t ticks)
+{
+	//implement the present runnig task to block and set the pending bit
+	Currect_running_task->Task_wait= (G_tik_cnt+ticks);
+	Currect_running_task->Task_State=BLOCKED;
+	trigger_pensv();
+}
+void pend_Sv_init(void)
+{
+	SCB->SHP[10]  = (KERNEL_INTERRUPT_PRIORITY << 4) ;
+}
+void svc_init(void)
+{
+	SCB->SHP[7]  = (KERNEL_INTERRUPT_PRIORITY << 4) ;
+}
+void trigger_pensv(void)
+{
+	SCB->ICSR =SCB_ICSR_PENDSVSET_Msk;//this is for trigger
+	//to clear SCB->ICSR =SCB_ICSR_PENDSVCLR_Msk;
+}
+__attribute__((naked,used))void PendSV_Handler(void)
+{
+	//context switch need to implement
+}
+/*
+ * this function will setupted the bus,usage,memage faults
+ */
+void faults_setup(void)
+{
+	SCB->SHP[0]=KERNEL_INTERRUPT_PRIORITY << 4;
+	SCB->SHP[1]=KERNEL_INTERRUPT_PRIORITY << 4;
+	SCB->SHP[2]=KERNEL_INTERRUPT_PRIORITY << 4;
+	//SCB->SHP[7]=KERNEL_INTERRUPT_PRIORITY << 4;  //to set the interrupt priority for the svc call
+	SCB->SHCSR = SCB_SHCSR_USGFAULTENA_Msk      |
+			     SCB_SHCSR_BUSFAULTENA_Msk      |
+				 SCB_SHCSR_MEMFAULTENA_Msk ;
+}
+__attribute__((used))void MemManage_Handler(void)
+{
+	while(1)
+	{
+
+	}
+}
+void Idle_task_handler(void)
+{
+
+}
+__attribute__((used))void BusFault_Handler(void)
+{
+	while(1)
+	{
+
+	}
+}
+__attribute__((used))void UsageFault_Handler(void)
+{
+	while(1)
+	{
+
+	}
+}
+__attribute__((naked,used))void SVC_Handler(void)
+{
+
 }

@@ -19,4 +19,10 @@ void ready_task(TCB_T *Task_handler);
 void task_init(void);
 void mpu_update(TCB_T Task_tcb ,int region);
 void systick_init(void);
+void faults_setup(void);
+void delay(uint32_t ticks);
+void trigger_pensv(void);
+void pend_Sv_init(void);
+void svc_init(void);
+void Idle_task_handler(void);
 #endif /* INC_FUNCTIONS_H_ */
