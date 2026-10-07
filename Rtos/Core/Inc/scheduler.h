@@ -23,6 +23,7 @@ extern uint32_t _estack;
 #define XPSR_THUMB_STATE  			0x01000000
 #define TICK_HZ           			1000   //every one millisecond based on frequency systick interrupt will trigger
 #define KERNEL_INTERRUPT_PRIORITY   0xFu   //initialize with lowest priority(15)
+#define PRIORITY                    0u     //0=premptive priority 1 =cooperative priority (default 0)
 typedef struct st
 {
 	uint32_t psp_value;

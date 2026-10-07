@@ -11,10 +11,10 @@
 TCB_T TCB[MAX_TASKS],
 	  *Currect_running_task;
 
-uint8_t gu8_curr_task_tcb=0,
+uint8_t gu8_current_task_running=0,
 		gu8_max_task_created=0;
 
-uint32_t G_tik_cnt=0;
+volatile uint32_t G_tik_cnt=0;
 extern uint32_t SystemCoreClock;
 int Tcb_Allocation(void)
 {
@@ -216,14 +216,22 @@ void SysTick_Handler(void)
 			}
 		}
 	}
+	#if (!PRIORITY)
+		task_switch_required_or_not();
+	#endif
 	//here we need to implement the switching logic here
 }
 void delay(uint32_t ticks)
 {
 	//implement the present runnig task to block and set the pending bit
-	Currect_running_task->Task_wait= (G_tik_cnt+ticks);
-	Currect_running_task->Task_State=BLOCKED;
-	trigger_pensv();
+	#if (!PRIORITY)
+		Currect_running_task->Task_wait= (G_tik_cnt+ticks);
+		Currect_running_task->Task_State=BLOCKED;
+		trigger_pensv();
+	#elif(PRIORITY)
+		uint32_t temp=G_tik_cnt;
+		while((temp+ticks)>G_tik_cnt);
+	#endif
 }
 void pend_Sv_init(void)
 {
@@ -231,16 +239,12 @@ void pend_Sv_init(void)
 }
 void svc_init(void)
 {
-	SCB->SHP[7]  = (KERNEL_INTERRUPT_PRIORITY << 4) ;
+	SCB->SHP[7]  = (0x0 << 4) ;
 }
 void trigger_pensv(void)
 {
 	SCB->ICSR =SCB_ICSR_PENDSVSET_Msk;//this is for trigger
 	//to clear SCB->ICSR =SCB_ICSR_PENDSVCLR_Msk;
-}
-__attribute__((naked,used))void PendSV_Handler(void)
-{
-	//context switch need to implement
 }
 /*
  * this function will setupted the bus,usage,memage faults
@@ -283,4 +287,84 @@ __attribute__((used))void UsageFault_Handler(void)
 __attribute__((naked,used))void SVC_Handler(void)
 {
 
+}
+__attribute__((naked,used))void PendSV_Handler(void)
+{
+	//context switch need to implement
+}
+void sort_the_tasks_based_on_priority(void)
+{
+	for(int i=1;i<gu8_max_task_created-1;i++)
+	{
+		for(int j=i+1;j<gu8_max_task_created;j++)
+		{
+			if(TCB[i].Task_pri>TCB[j].Task_pri)
+			{
+				TCB_T temp=TCB[i];
+				TCB[i]=TCB[j];
+				TCB[j]=temp;
+			}
+		}
+	}
+}
+void task_switch_required_or_not(void)
+{
+	int8_t l_task_priority,
+			high_priority_tcb=0 ,
+			same_pri_tcb=0,
+			currect_tcb,
+			current_pri;
+	if((TCB[gu8_current_task_running].Task_State==RUNNING ) && (gu8_current_task_running!=0))
+	{
+		l_task_priority=(TCB[gu8_current_task_running].Task_pri);
+		currect_tcb=gu8_current_task_running;
+		current_pri=l_task_priority;
+	}
+	else
+	{
+		l_task_priority=-1;
+		currect_tcb=0;
+		current_pri=-1;
+	}
+	for(int i=1;i<gu8_max_task_created;i++)
+	{
+		if( ( (TCB[i].Task_pri) >= l_task_priority ) && (TCB[i].Task_State==READY))
+		{
+			if(currect_tcb)
+			{
+				if(l_task_priority==current_pri)
+				{
+					same_pri_tcb=i;
+				}
+				currect_tcb=-1;
+			}
+			l_task_priority=(TCB[i].Task_pri) ;
+			high_priority_tcb=i;
+		}
+	}
+	if(l_task_priority==-1)
+	{
+		//idel task need to runn all tasks are blocked
+		if(gu8_current_task_running!=0)
+			trigger_pensv();
+
+	}
+	else
+	{
+		if(l_task_priority== (TCB[same_pri_tcb].Task_pri))
+		{
+			if(gu8_current_task_running!=same_pri_tcb)
+				trigger_pensv();
+		}
+		else
+		{
+			if(gu8_current_task_running!=high_priority_tcb)
+				trigger_pensv();
+		}
+
+	}
+}
+void task_yield(void)
+{
+	task_switch_required_or_not();
 }

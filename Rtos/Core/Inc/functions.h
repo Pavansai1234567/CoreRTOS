@@ -25,4 +25,7 @@ void trigger_pensv(void);
 void pend_Sv_init(void);
 void svc_init(void);
 void Idle_task_handler(void);
+void task_switch_required_or_not(void);
+void task_yield(void);
+void sort_the_tasks_based_on_priority(void);
 #endif /* INC_FUNCTIONS_H_ */

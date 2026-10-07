@@ -52,6 +52,12 @@ default.size.stdout \
 OBJDUMP_LIST += \
 Rtos.list \
 
+OBJCOPY_HEX += \
+Rtos.hex \
+
+OBJCOPY_BIN += \
+Rtos.bin \
+
 
 # All Target
 all: main-build
@@ -75,12 +81,22 @@ Rtos.list: $(EXECUTABLES) makefile objects.list $(OPTIONAL_TOOL_DEPS)
 	@echo 'Finished building: $@'
 	@echo ' '
 
+Rtos.hex: $(EXECUTABLES) makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-objcopy  -O ihex $(EXECUTABLES) "Rtos.hex"
+	@echo 'Finished building: $@'
+	@echo ' '
+
+Rtos.bin: $(EXECUTABLES) makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-objcopy  -O binary $(EXECUTABLES) "Rtos.bin"
+	@echo 'Finished building: $@'
+	@echo ' '
+
 # Other Targets
 clean:
-	-$(RM) Rtos.elf Rtos.list Rtos.map default.size.stdout
+	-$(RM) Rtos.bin Rtos.elf Rtos.hex Rtos.list Rtos.map default.size.stdout
 	-@echo ' '
 
-secondary-outputs: $(SIZE_OUTPUT) $(OBJDUMP_LIST)
+secondary-outputs: $(SIZE_OUTPUT) $(OBJDUMP_LIST) $(OBJCOPY_HEX) $(OBJCOPY_BIN)
 
 fail-specified-linker-script-missing:
 	@echo 'Error: Cannot find the specified linker script. Check the linker settings in the build configuration.'
