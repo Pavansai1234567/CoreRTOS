@@ -23,7 +23,9 @@ extern uint32_t _estack;
 #define XPSR_THUMB_STATE  			0x01000000
 #define TICK_HZ           			1000   //every one millisecond based on frequency systick interrupt will trigger
 #define KERNEL_INTERRUPT_PRIORITY   0xFu   //initialize with lowest priority(15)
+#define KERNEL_MASK_PRIORITY        0x04u
 #define PRIORITY                    0u     //0=premptive priority 1 =cooperative priority (default 0)
+
 typedef struct st
 {
 	uint32_t psp_value;
@@ -34,6 +36,7 @@ typedef struct st
 	uint32_t Task_wait;
 	uint8_t Task_State;
 	uint8_t Task_pri;//more value means high priority
+	uint32_t Task_ready_time;
 	void (*fun)(void);
 }TCB_T;
 enum State{

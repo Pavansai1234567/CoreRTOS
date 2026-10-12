@@ -8,8 +8,8 @@
 #include "scheduler.h"
 #include "string.h"
 
-TCB_T TCB[MAX_TASKS],
-	  *Currect_running_task;
+TCB_T TCB[MAX_TASKS];
+	  //*Currect_running_task;
 
 uint8_t gu8_current_task_running=0,
 		gu8_max_task_created=0;
@@ -75,14 +75,14 @@ int Task_Create(void(*fun)(void) ,uint32_t size,const char *task_name, uint8_t t
 	if(task_priority>MAX_TASK_PRI)
 		task_priority=MAX_TASK_PRI;
 
-	TCB[local_value].Task_State=task_priority;//more value means high priority
+	TCB[local_value].Task_pri=task_priority;//more value means high priority
 
 	TCB[local_value].fun=fun;
 
 	TCB[local_value].Task_wait=0;
 
 
-	uint32_t gaurd=TCB[local_value].psp_value+((TCB[local_value].Task_Size) *WORD_ALLOCATION);
+	uint32_t gaurd=TCB[local_value].psp_value - ((TCB[local_value].Task_Size) *WORD_ALLOCATION);
 	gaurd=(uint32_t)(gaurd/32)*32;
 
 	if(gaurd==0)return 0;
@@ -148,6 +148,8 @@ void task_init(void)
 		l_psp=0;
 		l_psp=(uint32_t*)((TCB[i].psp_value/32)*32);
 
+		l_psp--;
+
 		(*l_psp--)=XPSR_THUMB_STATE;  //adding processor to thumb state in Xpsr register
 
 		(*l_psp--)=(uint32_t)(TCB[i].fun);  //assiging task handler to PC (R15)
@@ -208,14 +210,16 @@ void SysTick_Handler(void)
 	G_tik_cnt++;
 	for(int i=0;i<gu8_max_task_created;i++)
 	{
-		if(TCB[i].Task_wait >=G_tik_cnt)
+		if(G_tik_cnt >= TCB[i].Task_wait )
 		{
 			if(TCB[i].Task_State == BLOCKED)
 			{
 				TCB[i].Task_State=READY;
+				TCB[i].Task_ready_time=G_tik_cnt-1;
 			}
 		}
 	}
+//	TCB[gu8_current_task_running].Task_ready_time=G_tik_cnt;
 	#if (!PRIORITY)
 		task_switch_required_or_not();
 	#endif
@@ -225,9 +229,9 @@ void delay(uint32_t ticks)
 {
 	//implement the present runnig task to block and set the pending bit
 	#if (!PRIORITY)
-		Currect_running_task->Task_wait= (G_tik_cnt+ticks);
-		Currect_running_task->Task_State=BLOCKED;
-		trigger_pensv();
+	TCB[gu8_current_task_running].Task_wait= (G_tik_cnt+ticks);
+	TCB[gu8_current_task_running].Task_State=BLOCKED;
+		task_switch_required_or_not();
 	#elif(PRIORITY)
 		uint32_t temp=G_tik_cnt;
 		while((temp+ticks)>G_tik_cnt);
@@ -266,9 +270,12 @@ __attribute__((used))void MemManage_Handler(void)
 
 	}
 }
-void Idle_task_handler(void)
+__attribute__((used))void Idle_task_handler(void)
 {
+	while(1)
+	{
 
+	}
 }
 __attribute__((used))void BusFault_Handler(void)
 {
@@ -292,79 +299,92 @@ __attribute__((naked,used))void PendSV_Handler(void)
 {
 	//context switch need to implement
 }
-void sort_the_tasks_based_on_priority(void)
+__attribute__((used))void task_switch_required_or_not(void)
 {
-	for(int i=1;i<gu8_max_task_created-1;i++)
+	int task_priority=-1;
+	int high_priority_task=-1;
+//	int current_task_priority=-1;
+	if(gu8_current_task_running && TCB[gu8_current_task_running].Task_State==RUNNING)
 	{
-		for(int j=i+1;j<gu8_max_task_created;j++)
+		task_priority=TCB[gu8_current_task_running].Task_pri;
+		high_priority_task=gu8_current_task_running;
+	}
+	for(int i=1 ; i<gu8_max_task_created ; i++)
+	{
+		if((TCB[i].Task_pri > task_priority) && (TCB[i].Task_State==READY))
 		{
-			if(TCB[i].Task_pri>TCB[j].Task_pri)
-			{
-				TCB_T temp=TCB[i];
-				TCB[i]=TCB[j];
-				TCB[j]=temp;
-			}
+			task_priority=TCB[i].Task_pri;
+			high_priority_task=i;
 		}
 	}
-}
-void task_switch_required_or_not(void)
-{
-	int8_t l_task_priority,
-			high_priority_tcb=0 ,
-			same_pri_tcb=0,
-			currect_tcb,
-			current_pri;
-	if((TCB[gu8_current_task_running].Task_State==RUNNING ) && (gu8_current_task_running!=0))
+	if(task_priority==-1)
 	{
-		l_task_priority=(TCB[gu8_current_task_running].Task_pri);
-		currect_tcb=gu8_current_task_running;
-		current_pri=l_task_priority;
-	}
-	else
-	{
-		l_task_priority=-1;
-		currect_tcb=0;
-		current_pri=-1;
-	}
-	for(int i=1;i<gu8_max_task_created;i++)
-	{
-		if( ( (TCB[i].Task_pri) >= l_task_priority ) && (TCB[i].Task_State==READY))
-		{
-			if(currect_tcb)
-			{
-				if(l_task_priority==current_pri)
-				{
-					same_pri_tcb=i;
-				}
-				currect_tcb=-1;
-			}
-			l_task_priority=(TCB[i].Task_pri) ;
-			high_priority_tcb=i;
-		}
-	}
-	if(l_task_priority==-1)
-	{
-		//idel task need to runn all tasks are blocked
+		//need to run idel task
 		if(gu8_current_task_running!=0)
+		{
+			gu8_current_task_running=0;
 			trigger_pensv();
-
+		}
 	}
 	else
 	{
-		if(l_task_priority== (TCB[same_pri_tcb].Task_pri))
-		{
-			if(gu8_current_task_running!=same_pri_tcb)
-				trigger_pensv();
+		uint8_t dummy=dummy=round_robin_check(task_priority);
+		if(dummy){
+			high_priority_task=dummy;
 		}
-		else
+		if(gu8_current_task_running!=high_priority_task)
 		{
-			if(gu8_current_task_running!=high_priority_tcb)
-				trigger_pensv();
+			gu8_current_task_running=high_priority_task;
+			TCB[gu8_current_task_running].Task_ready_time=G_tik_cnt;
+			trigger_pensv();
 		}
-
 	}
 }
-void task_yield(void)
+__attribute__((used))uint8_t round_robin_check(uint8_t pri)
+{
+	uint8_t a[gu8_max_task_created];
+	int i=-1;
+	uint32_t ready_time=G_tik_cnt;
+	int16_t task=-1;
+	for(int j=1;j<gu8_max_task_created;j++)
+	{
+		if((pri==TCB[j].Task_pri) && (TCB[j].Task_State==READY) )
+		{
+			a[++i]=j;
+		}
+	}
+	if(i>=1)
+	{
+		for(int j=0;j<=i;j++)
+		{
+			if(TCB[a[j]].Task_ready_time <= ready_time)
+			{
+				ready_time=TCB[a[j]].Task_ready_time;
+				task=a[j];
+			}
+		}
+		return task;
+	}
+	else
+	{
+		if(i==0)
+		{
+			return a[0];
+		}
+		return 0;
+	}
+}
+__attribute__((used))void task_yield(void)
 {
 	task_switch_required_or_not();
+}
+__attribute__((used))void enter_crictical(void)
+{
+	__set_BASEPRI(KERNEL_MASK_PRIORITY);
+	__set_PRIMASK(1);
+}
+__attribute__((used))void exit_crictical(void)
+{
+	__set_PRIMASK(0u);
+	__set_BASEPRI(0u);
 }

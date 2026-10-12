@@ -24,8 +24,10 @@ void delay(uint32_t ticks);
 void trigger_pensv(void);
 void pend_Sv_init(void);
 void svc_init(void);
-void Idle_task_handler(void);
-void task_switch_required_or_not(void);
-void task_yield(void);
-void sort_the_tasks_based_on_priority(void);
+__attribute__((used))void Idle_task_handler(void);
+__attribute__((used))void task_switch_required_or_not(void);
+__attribute__((used))void task_yield(void);
+__attribute__((used))uint8_t round_robin_check(uint8_t pri);
+__attribute__((used))void enter_crictical(void);
+__attribute__((used))void exit_crictical(void);
 #endif /* INC_FUNCTIONS_H_ */
