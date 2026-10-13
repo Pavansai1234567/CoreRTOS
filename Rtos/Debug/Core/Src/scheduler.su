@@ -25,3 +25,6 @@
 ../Core/Src/scheduler.c:377:27:task_yield	0	static
 ../Core/Src/scheduler.c:381:27:enter_crictical	0	static,ignoring_inline_asm
 ../Core/Src/scheduler.c:386:27:exit_crictical	0	static,ignoring_inline_asm
+../Core/Src/scheduler.c:391:27:save_task_psp	0	static
+../Core/Src/scheduler.c:395:31:get_task_psp	0	static
+../Core/Src/scheduler.c:399:33:switch_msp_psp	0	static,ignoring_inline_asm

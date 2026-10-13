@@ -30,4 +30,7 @@ __attribute__((used))void task_yield(void);
 __attribute__((used))uint8_t round_robin_check(uint8_t pri);
 __attribute__((used))void enter_crictical(void);
 __attribute__((used))void exit_crictical(void);
+__attribute__((used))void save_task_psp(uint32_t psp);
+__attribute__((used))uint32_t get_task_psp(void);
+__attribute__((naked,used))void switch_msp_psp(void);
 #endif /* INC_FUNCTIONS_H_ */

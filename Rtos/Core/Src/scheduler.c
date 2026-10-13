@@ -388,3 +388,31 @@ __attribute__((used))void exit_crictical(void)
 	__set_PRIMASK(0u);
 	__set_BASEPRI(0u);
 }
+__attribute__((used))void save_task_psp(uint32_t psp)
+{
+	TCB[gu8_current_task_running].psp_value=psp;
+}
+__attribute__((used))uint32_t get_task_psp(void)
+{
+	return TCB[gu8_current_task_running].psp_value;
+}
+__attribute__((naked,used))void switch_msp_psp(void)
+{
+	/*__set_PSP(get_task_psp());
+	//setting 1 for spel bit of control register
+	__set_CONTROL((__get_CONTROL())|(1<<1));
+	__ISB();*/
+	__asm volatile("PUSH {R0, LR}");  //here we are storng the lr value in the stack
+									  //so that after return it will restor that state
+	__asm volatile("BL get_task_psp");//here call one function and come back to here only
+	__asm volatile("MSR PSP, R0"); // here r0(rule of AACPS) return value of this function get_task_psp
+	__asm volatile("POP {R0, LR}"); //getting back of the stored LR value
+
+	__asm volatile("MOV R0, #2");	//here we are keeping r0 value is 2 so that 2 bit will become 1(then
+									//spel bit is 1 so it will change to psp
+	__asm volatile("MSR CONTROL, R0");//that R0 value is stored into the Control register
+	__asm volatile("ISB");       //this is a one instruction this will implement from next instruction
+								//use this settings(ISB=instruction synchronization barrier)
+	__asm volatile("BX LR");    //exit this function from where it is called
+
+}
